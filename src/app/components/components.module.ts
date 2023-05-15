@@ -13,6 +13,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { AvatarComponent } from './avatar/avatar.component';
 
 @NgModule({
   declarations: [
@@ -26,6 +27,7 @@ import { CommonModule } from '@angular/common';
     ConfirmModalComponent,
     ItemDateComponent,
     ItemComponent,
+    AvatarComponent,
   ],
   exports: [
     HeaderComponent,
@@ -38,6 +40,7 @@ import { CommonModule } from '@angular/common';
     ConfirmModalComponent,
     ItemDateComponent,
     ItemComponent,
+    AvatarComponent
   ],
   imports: [
     RouterModule,

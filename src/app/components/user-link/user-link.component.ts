@@ -17,12 +17,12 @@ export class UserLinkComponent implements OnChanges {
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (this.userId) {
-			this._userService.getUser(this.userId).subscribe(user => this.user = user)
+			this._userService.getUserFromId(this.userId).subscribe(user => this.user = user)
 		}
 	}
 
 	public get displayName() {
-		return this.user ? (this.user.data.displayName ? this.user.data.displayName : this.user.name) : null;
+		return this.user ? this.user.data.displayName || this.user.name : null;
 	}
 
 	public click(): void {

@@ -10,12 +10,13 @@ import { AdminComponent } from './views/admin/admin.component';
 import { UserService } from './services/user/user.service';
 import { ComponentsModule } from './components/components.module';
 import { CommonModule } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { RouterModule } from '@angular/router';
 import { UserComponent } from './views/user/user.component';
 import { AppsModule } from './apps/apps.module';
 import { ROUTES } from './app-routing';
 import { provideAuth, getAuth } from '@angular/fire/auth';
+import { UserEditComponent } from './views/user/edit/edit.component';
 
 @NgModule({
   declarations: [
@@ -23,6 +24,7 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
     DefaultComponent,
     AdminComponent,
     UserComponent,
+    UserEditComponent,
   ],
   imports: [
     RouterModule.forRoot(ROUTES),
@@ -30,6 +32,7 @@ import { provideAuth, getAuth } from '@angular/fire/auth';
     ComponentsModule,
     CommonModule,
     FormsModule,
+    ReactiveFormsModule,
     RouterModule,
     AppsModule,
     provideFirebaseApp(() => initializeApp(FIREBASE_CONFIG)),

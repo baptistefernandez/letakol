@@ -1,6 +1,6 @@
 <button type="button" class="default-size invisible" *ngIf="!user"></button>
 
 <div *ngIf="user" class="user-link input-group" [ngClass]="{'light': light}" (click)="click()">
-  <img [src]="user!.data.photoURL ? user!.data.photoURL : '/assets/images/default_user.png'" alt="">
+  <img [src]="user!.data.photoURL ? user!.data.photoURL : '/assets/avatar-default.png'" alt="">
   <button type="button" class="btn btn-secondary d-none d-sm-block">{{ displayName }}</button>
 </div>

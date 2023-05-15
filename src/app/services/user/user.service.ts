@@ -1,42 +1,48 @@
 import { EventEmitter, Injectable, inject } from "@angular/core";
 import { FirestoreService } from "../firestore/firestore.service";
-import { UserStaticService } from "./user.static-service";
+import { UserStaticService } from "./user.static.service";
 import { IUser, IUserData } from "src/app/models/user.model";
-import { Observable } from 'rxjs'
+import { Observable, tap, of } from 'rxjs'
 import { EqualCondition } from "src/app/models/queryCondition.model";
-import { Auth, authState, signInWithEmailAndPassword, signOut } from '@angular/fire/auth';
+import { Auth, signInWithPopup, GoogleAuthProvider, authState, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, UserCredential } from '@angular/fire/auth';
+import { ILoginInfo } from "src/app/models/login.model";
+import { EmptyItem } from "src/app/models/item.model";
+import { EItemTypes } from "src/app/models/enums/firebase-item-types.enum";
 
 @Injectable()
 export class UserService {
 	public userChange = new EventEmitter<IUser | null>();
-	private _userList: Array<IUser> = [];
 	private _auth: Auth = inject(Auth);
 
 	constructor(private _firestoreService: FirestoreService) {
 		authState(this._auth).subscribe(authUser => {
 			if (authUser) {
-				this._firestoreService.searchOne([
-					new EqualCondition(`type`, 'user'),
-					new EqualCondition(`data.uid`, authUser.uid)
-				]).subscribe(user => this.updateUser(user))
+				this.getUserFromUid(authUser.uid).subscribe(user => this.updateUser(user || null))
 			}
 		})
 	}
 
 	public get user(): IUser | null {
-		return UserStaticService.user;
+		return UserStaticService.currentUser;
 	}
 
-	public getUser(userId: string): Observable<IUser | undefined> {
-		const user = this._userList.find(user => user.id === userId);
+	private updateUser(user: IUser | null): void {
+		UserStaticService.currentUser = user;
+		this.userChange.emit(user);
+	}
+
+	public getUserFromId(userId: string): Observable<IUser | undefined> {
+		const user = UserStaticService.getUser(userId);
 		const oUser = new Observable<IUser>(observer => {
 			if (user) {
 				observer.next(user);
+				observer.complete();
 			} else {
 				this._firestoreService.get<IUser>(userId).subscribe(user => {
 					if (user) {
-						this._userList.push(user)
-						observer.next(user)
+						UserStaticService.addUser(user)
+						observer.next(user);
+						observer.complete();
 					}
 				})
 			}
@@ -45,54 +51,69 @@ export class UserService {
 	}
 
 	public isLoggedIn(): boolean {
-		return UserStaticService.user !== null;
+		return UserStaticService.currentUser !== null;
 	}
 
-	private searchUser(email: string) {
+	private getUserFromEmail(email: string): Observable<IUser> {
 		return this._firestoreService.searchOne([
 			new EqualCondition(`type`, 'user'),
 			new EqualCondition(`name`, email)
 		])
 	}
 
-	private newUser(user: IUserData): Promise<void> {
-		// create and save new user in firestore
-		return Promise.resolve()
+	private getUserFromUid(uid: string): Observable<IUser> {
+		return this._firestoreService.searchOne([
+			new EqualCondition(`type`, 'user'),
+			new EqualCondition(`data.uid`, uid)
+		])
 	}
 
-	private updateUser(user: IUser | null): void {
-		UserStaticService.user = user;
-		this.userChange.emit(user);
+	private newUser({ user }: UserCredential): Promise<void> {
+		const userData: IUserData = {
+			uid: user.uid,
+			displayName: user.displayName!,
+			email: user.email!,
+			isAnonymous: false,
+			photoURL: "",
+			admin: false
+		}
+		const newUser = new EmptyItem(EItemTypes.User, user.email!, userData)
+		return this._firestoreService.create<IUser>(newUser)
 	}
 
-	public register({ email, password }: { email: string, password: string }): Promise<void> {
-		this.searchUser(email).subscribe(user => {
-			console.log('register user found:', user)
-		})
-		// verifier que l'utilisateur n'existe pas deja
-		// creer l'utilisater via Auth
-		// ajouter l'utilisateur creé en base fire
-		// si l'enregistrement en base echoue, on supprime le firebase-auth créé
-		return Promise.resolve()
+	public register({ email, password }: ILoginInfo): Promise<void> {
+		return new Promise((resolve, reject) =>
+			this.getUserFromEmail(email).subscribe(user => {
+				if (!user) {
+					createUserWithEmailAndPassword(this._auth, email, password).then(
+						credentials => this.newUser(credentials).then(
+							() => resolve(),
+							error => new Error(error)
+						),
+						error => new Error(error))
+				} else {
+					reject(new Error(`User ${email} already exists`))
+				}
+			})
+		)
 	}
 
-	public signIn({ email, password }: { email: string, password: string }): Promise<void> {
-		return new Promise((resolve, reject) => {
-			this.searchUser(email).subscribe(user => {
+	public signIn({ email, password }: ILoginInfo): Promise<void> {
+		return new Promise((resolve, reject) =>
+			this.getUserFromEmail(email).subscribe(user => {
 				if (user) {
-					signInWithEmailAndPassword(this._auth, email, password).then(credentials => {
-						this.updateUser(user)
-						resolve()
-					}, error => reject(error))
+					signInWithEmailAndPassword(this._auth, email, password)
+						.then(credentials => resolve(), error => reject(error))
 				} else {
 					reject(new Error(`User ${email} not found`))
 				}
 			})
-		})
+		)
 	}
 
 	public signInWithGoogle(): Promise<void> {
-		return Promise.resolve()
+		const provider = new GoogleAuthProvider
+		return signInWithPopup(this._auth, provider).then()
 	}
 
 	public signOut(): Promise<void> {
@@ -105,7 +126,10 @@ export class UserService {
 		)
 	}
 
-	public updateProfile(profile: { displayName: string, photoURL: string }): Promise<void> {
-		return Promise.resolve()
+	public updateProfile(userInfo: { displayName: string, photoURL: string }): Promise<void> {
+		const user = UserStaticService.currentUser!;
+		user.data.displayName = userInfo.displayName;
+		user.data.photoURL = userInfo.photoURL;
+		return this._firestoreService.update(user);
 	}
 }

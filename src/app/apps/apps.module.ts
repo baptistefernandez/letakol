@@ -4,6 +4,7 @@ import { AppsComponent } from './apps.component';
 import { RouterModule } from '@angular/router';
 import { APPS_ROUTES } from './apps.routing';
 import { CommonModule } from '@angular/common';
+import { ComponentsModule } from '../components/components.module';
 
 @NgModule({
   declarations: [
@@ -13,6 +14,7 @@ import { CommonModule } from '@angular/common';
   imports: [
     RouterModule.forChild(APPS_ROUTES),
     CommonModule,
+    ComponentsModule,
 
   ]
 })

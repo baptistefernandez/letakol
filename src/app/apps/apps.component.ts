@@ -4,8 +4,8 @@ import { Utils } from '../services/utils/utils.service';
 
 class App {
   public path: Array<string>;
-  constructor(readonly a: string, readonly name: string, readonly description: string = '') {
-    this.path = ['/', 'apps', a];
+  constructor(readonly route: string, readonly name: string, readonly description: string = '') {
+    this.path = ['/', 'apps', route];
   }
 }
 

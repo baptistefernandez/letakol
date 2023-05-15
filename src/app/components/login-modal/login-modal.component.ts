@@ -1,17 +1,18 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component } from '@angular/core';
 import { NgbModal } from '@ng-bootstrap/ng-bootstrap';
 import { FormGroup, FormControl, Validators } from '@angular/forms';
 import { Mutex } from 'src/app/classes/mutex.class';
-import { Subscription } from 'rxjs';
 import { UserService } from 'src/app/services/user/user.service';
+import { CurrentUser } from '../currentUser.component';
+
+type LoginInfo = Partial<{ email: string | null; password: string | null; }>
 
 @Component({
 	selector: 'app-login-modal',
 	templateUrl: './login-modal.component.html',
 	styleUrls: ['./login-modal.component.css'],
 })
-export class LoginModalComponent implements OnDestroy {
-	private _userChangeSubscription: Subscription;
+export class LoginModalComponent extends CurrentUser {
 	public loginForm = new FormGroup({
 		email: new FormControl('', Validators.required),
 		password: new FormControl('', Validators.required),
@@ -19,28 +20,24 @@ export class LoginModalComponent implements OnDestroy {
 	public mutex = new Mutex(false);
 
 	constructor(private _userService: UserService, private _modalService: NgbModal) {
-		this._userChangeSubscription = this._userService.userChange.subscribe(user => {
+		super(_userService)
+		this.onUserChange(user => {
 			if (user) {
 				this._modalService.dismissAll();
 			}
-		});
-		this.loginForm.value
+		})
 	}
 
-	ngOnDestroy(): void {
-		this._userChangeSubscription.unsubscribe();
-	}
-
-	public register(form: Partial<{ email: string | null; password: string | null; }>): void {
+	public register(form: LoginInfo): void {
 		this.mutex.exec(this._userService.register.bind(this._userService), form);
 	}
 
-	public login(form: Partial<{ email: string | null; password: string | null; }>): void {
+	public login(form: LoginInfo): void {
 		this.mutex.exec(this._userService.signIn.bind(this._userService), form);
 	}
 
 	public googleLogin(): void {
-		this.mutex.exec(this._userService.signInWithGoogle.bind(this._userService));
+		this._userService.signInWithGoogle(); // no mutex because popup
 	}
 
 	public close(): void {

@@ -5,8 +5,8 @@ import { IItem } from 'src/app/models/item.model';
 import { IPixel, Pixel } from 'src/app/models/pixel.model';
 import { FirestoreService } from 'src/app/services/firestore/firestore.service';
 import { environment } from 'src/environments/environment';
-import { interval, of } from 'rxjs';
-import { mergeMap, delay, map, take, tap } from 'rxjs/operators';
+import { Observable, interval, of } from 'rxjs';
+import { mergeMap, delay, map, take, tap, filter } from 'rxjs/operators';
 
 @Component({
 	selector: 'app-default',
@@ -24,7 +24,6 @@ export class DefaultComponent {
 			this.items = result
 			this.displayedItems = this.items;
 		})
-
 	}
 
 	public search(string: string): void {

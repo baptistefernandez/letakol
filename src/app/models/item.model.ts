@@ -1,5 +1,4 @@
-import { UserService } from '../services/user/user.service';
-import { UserStaticService } from '../services/user/user.static-service';
+import { UserStaticService } from '../services/user/user.static.service';
 import { Utils } from '../services/utils/utils.service';
 import { EItemTypes } from './enums/firebase-item-types.enum';
 
@@ -27,8 +26,8 @@ export class EmptyItem implements IItem {
 		public data: any
 	) {
 		const date = Date.now();
-		this.id = Utils.generateId()
-		this.uid = UserStaticService.user!.id
+		this.id = Utils.generateId();
+		this.uid = UserStaticService.currentUid || this.id; // If no uid means its a new user, so uid=id (firebase uid is in data)
 		this.creationDate = date;
 		this.lastUpdateDate = date;
 	}
