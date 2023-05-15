@@ -6,5 +6,16 @@ import { Component } from '@angular/core';
   styleUrls: ['./app.component.less']
 })
 export class AppComponent {
-  title = 'letakol';
+
+  public loaded: boolean = false;
+  public display: boolean = false;
+
+  ngOnInit(): void {
+    this.loaded = true;
+  }
+
+  public loaderCb(): void {
+    this.display = true;
+  }
+
 }

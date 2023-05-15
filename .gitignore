@@ -1,5 +1,9 @@
 # See http://help.github.com/ignore-files/ for more about ignoring files.
 
+# Firebase
+src/environments/firebase.token.ts
+.firebase/hosting.ZGlzdA.cache
+
 # Compiled output
 /dist
 /tmp

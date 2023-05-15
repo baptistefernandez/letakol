@@ -1,0 +1,19 @@
+<nav class="navbar navbar-dark bg-dark">
+	<div class="container">
+		<a class="navbar-brand" routerLink="/">Index</a>
+
+		<ul class="navbar-nav float-left">
+			<li class="nav-item">
+				<a class="nav-link" routerLink="/apps">Apps</a>
+			</li>
+		</ul>
+
+		<div class="float-right">
+			<button *ngIf="!currentUser" class="btn btn-primary" (click)="openLoginModal()">Login</button>
+			<div *ngIf="currentUser" class="d-flex">
+				<app-user-link [user]="currentUser" [light]="true"></app-user-link>
+				<button type="button" class="btn btn-outline-danger ms-2" (click)="logout()">Logout</button>
+			</div>
+		</div>
+	</div>
+</nav>

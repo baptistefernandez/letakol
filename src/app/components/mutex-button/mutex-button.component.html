@@ -1,0 +1,4 @@
+<button type="button" class="btn" [ngClass]="btnClass" [disabled]="lock" (click)="onClick()">
+  <span *ngIf="lock" class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+  <span>{{ btnValue }} {{ lock ? '...' : '' }}</span>
+</button>
