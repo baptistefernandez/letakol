@@ -11,8 +11,14 @@ import { LoginModalComponent } from '../login-modal/login-modal.component';
 })
 export class HeaderComponent extends CurrentUser {
 
+  public userLoading: boolean = true;
+
   constructor(private _userService: UserService, private _modalService: NgbModal) {
-    super(_userService);
+    super();
+
+    this.addSubscription(
+      this._userService.userLoaded.subscribe(_ => this.userLoading = false)
+    )
   }
 
   public logout(): void {

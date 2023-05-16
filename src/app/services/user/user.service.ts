@@ -2,7 +2,7 @@ import { EventEmitter, Injectable, inject } from "@angular/core";
 import { FirestoreService } from "../firestore/firestore.service";
 import { UserStaticService } from "./user.static.service";
 import { IUser, IUserData } from "src/app/models/user.model";
-import { Observable, tap, of } from 'rxjs'
+import { Observable } from 'rxjs'
 import { EqualCondition } from "src/app/models/queryCondition.model";
 import { Auth, signInWithPopup, GoogleAuthProvider, authState, signInWithEmailAndPassword, signOut, createUserWithEmailAndPassword, UserCredential } from '@angular/fire/auth';
 import { ILoginInfo } from "src/app/models/login.model";
@@ -11,13 +11,20 @@ import { EItemTypes } from "src/app/models/enums/firebase-item-types.enum";
 
 @Injectable()
 export class UserService {
-	public userChange = new EventEmitter<IUser | null>();
 	private _auth: Auth = inject(Auth);
+
+	public userChange = new EventEmitter<IUser | null>();
+	public readonly userLoaded: EventEmitter<void> = new EventEmitter();
 
 	constructor(private _firestoreService: FirestoreService) {
 		authState(this._auth).subscribe(authUser => {
 			if (authUser) {
-				this.getUserFromUid(authUser.uid).subscribe(user => this.updateUser(user || null))
+				this.getUserFromUid(authUser.uid).subscribe(user => {
+					this.updateUser(user || null)
+					this.userLoaded.emit()
+				})
+			} else {
+				this.userLoaded.emit()
 			}
 		})
 	}
@@ -78,7 +85,7 @@ export class UserService {
 			admin: false
 		}
 		const newUser = new EmptyItem(EItemTypes.User, user.email!, userData)
-		return this._firestoreService.create<IUser>(newUser)
+		return this._firestoreService.create(newUser)
 	}
 
 	public register({ email, password }: ILoginInfo): Promise<void> {

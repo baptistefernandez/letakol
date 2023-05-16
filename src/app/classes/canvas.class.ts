@@ -1,15 +1,15 @@
 import { Looper, ILooperOptions } from './looper.class';
 import { Coord } from './coord.class';
-import { Utils } from '../../services/utils/utils.service';
-import { Logger } from '../../services/logger/logger.service';
 import { Debouncer } from './debouncer.class';
+import { Logger } from '../services/logger/logger.service';
+import { Utils } from '../services/utils/utils.service';
 
 const DEFAULT_UNITS_PER_LINE = 20;
 const DEFAULT_MAX_CANVAS_WIDTH = 800;
 
-export class ICanvasOptions {
-	wrapper!: HTMLDivElement;
-	name?: string;
+export interface ICanvasOptions {
+	wrapper: HTMLDivElement;
+	name: string;
 	unitsPerLine?: number;
 	maxWidth?: number;
 	looperOption?: ILooperOptions;
@@ -28,35 +28,54 @@ export class Canvas extends Looper {
 
 	constructor({
 		wrapper,
-		name = '',
+		name,
 		unitsPerLine = DEFAULT_UNITS_PER_LINE,
 		maxWidth = DEFAULT_MAX_CANVAS_WIDTH,
 		looperOption = {},
 	}: ICanvasOptions) {
 		super(looperOption);
+
+		if (!wrapper) {
+			Logger.error(`[Canvas] wrapper for '${name}' not found`)
+			// return
+		}
+
 		this._wrapper = wrapper;
 		this._name = name;
 
 		// create canvas
 		this._canvas = document.createElement('canvas');
-		this._render = this._canvas.getContext('2d')!;
+		this._canvas.width = maxWidth;
+		this._canvas.height = maxWidth;
+		const renderingContext = this._canvas.getContext('2d');
+		if (!renderingContext) {
+			Logger.error(`[Canvas] could not get rendering context from '${name}' canvas element`)
+			// return
+		}
+		this._render = renderingContext!;
 
 		this._size = this.getCanvasSize();
 		this._unitsPerLine = unitsPerLine;
 		this._unitSize = Utils.fixed(this._size / this._unitsPerLine, 2);
 		this._maxWidth = maxWidth;
 
+		this.linkEvents();
+
 		this._wrapper.append(this._canvas);
 
+		const frames = Utils.fixed(1000 / this._timespan, 2);
+		Logger.log(`[Canvas] '${this._name}' initialized with ${frames} frames per second.`);
+
+		this.sizeCanvas();
+	}
+
+	private linkEvents(): void {
 		const cancelEvent = (event: MouseEvent, cb: void) => {
 			event.preventDefault();
 			return cb;
 		};
 
-		// on click
-		this._canvas.addEventListener('click', (event: MouseEvent) =>
-			cancelEvent(event, this.onClick(event.offsetX, event.offsetY))
-		);
+		// on right click
 		this._canvas.addEventListener('contextmenu', (event: MouseEvent) =>
 			cancelEvent(event, this.onRightClick(event.offsetX, event.offsetY))
 		);
@@ -77,11 +96,9 @@ export class Canvas extends Looper {
 		const resizeDebouncer = new Debouncer(this.sizeCanvas.bind(this), 100);
 		window.addEventListener('resize', (event: UIEvent) => resizeDebouncer.exec());
 
-		const frames = Utils.fixed(1000 / this._timespan, 2);
-		Logger.log(`[Canvas] '${this._name}' initialized with ${frames} frames per second.`);
 
-		this.sizeCanvas();
 	}
+
 
 	public destroy(): void {
 		this.stop();
@@ -174,11 +191,10 @@ export class Canvas extends Looper {
 		this.sizeCanvas();
 	}
 
-	protected onResize(): void {}
-	protected onClick(x: number, y: number): void {}
-	protected onRightClick(x: number, y: number): void {}
-	protected onScroll(up: boolean): void {}
-	protected onMouse(pressed: boolean, x: number, y: number): void {}
-	protected onMouseLeave(): void {}
-	protected onMouseMove(x: number, y: number): void {}
+	protected onResize(): void { }
+	protected onRightClick(x: number, y: number): void { }
+	protected onScroll(up: boolean): void { }
+	protected onMouse(pressed: boolean, x: number, y: number): void { }
+	protected onMouseLeave(): void { }
+	protected onMouseMove(x: number, y: number): void { }
 }

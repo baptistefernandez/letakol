@@ -32,12 +32,11 @@ export class AdminComponent extends CurrentUser {
 	public ascOrder = true;
 
 	constructor(
-		userService: UserService,
 		private _firestoreService: FirestoreService,
 		private _router: Router,
 		private _modalService: NgbModal
 	) {
-		super(userService);
+		super();
 
 		this.checkAdmin();
 		this.onUserChange(() => this.checkAdmin.bind(this))

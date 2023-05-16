@@ -1,7 +1,8 @@
 // TOOD: remove from codewar, pet and snake
 // replace with Player class
 
-import { Logger } from "src/services/logger/logger.service";
+import { Logger } from "../services/logger/logger.service";
+
 
 interface IBaseOptions {
   timeout: number;
@@ -18,7 +19,7 @@ export class Base implements IBaseOptions {
   preventDefaultAllKey: boolean = false;
   preventDefaultKeys: string[] = [];
 
-  private interval: number | undefined;
+  private interval: NodeJS.Timer | undefined;
   private steps: number = 0;
   private running: boolean = false;
 

@@ -1,6 +1,7 @@
 import { IUser } from "src/app/models/user.model";
 import { UserService } from "../services/user/user.service";
 import { HasSubscriptions } from "./subscription.component";
+import { UserStaticService } from "../services/user/user.static.service";
 
 type UserChangeCallback = (user: IUser | null) => void
 
@@ -9,11 +10,11 @@ export class CurrentUser extends HasSubscriptions {
   private _onUserChangeCallback: UserChangeCallback | undefined;
   protected _currentUser: IUser | null = null;
 
-  constructor(userService: UserService) {
+  constructor() {
     super()
-    this._currentUser = userService.user;
+    this._currentUser = UserStaticService.currentUser;
     this.addSubscription(
-      userService.userChange.subscribe(this.userChange.bind(this))
+      UserStaticService.userChange.subscribe(this.userChange.bind(this))
     )
   }
 

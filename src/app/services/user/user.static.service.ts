@@ -1,3 +1,4 @@
+import { EventEmitter } from "@angular/core";
 import { IUser } from "src/app/models/user.model";
 
 export class UserStaticService {
@@ -5,12 +6,15 @@ export class UserStaticService {
   private static _user: IUser | null = null;
   private static _userList: IUser[] = [];
 
+  public static userChange: EventEmitter<IUser | null> = new EventEmitter()
+
   public static set currentUser(user: IUser | null) {
     this._user = user;
+    this.userChange.emit(user);
   }
 
   public static get currentUser(): IUser | null {
-    return this._user || null;
+    return this._user;
   }
 
   public static get currentUid(): string | null {

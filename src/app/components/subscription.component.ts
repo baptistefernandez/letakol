@@ -6,9 +6,12 @@ import { Logger } from '../services/logger/logger.service';
 export class HasSubscriptions implements OnDestroy {
     private _subscriptions: Subscription[] = [];
 
+    protected destroy() { }
+
     ngOnDestroy(): void {
-        Logger.log(`HasSubscriptions destroy {${this._subscriptions.length}}`)
+        // Logger.log(`HasSubscriptions destroy {${this._subscriptions.length}}`)
         this._subscriptions.forEach(subscription => subscription.unsubscribe())
+        this.destroy();
     }
 
     public addSubscription(subscription: Subscription): void {

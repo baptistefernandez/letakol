@@ -20,7 +20,7 @@ export class LoginModalComponent extends CurrentUser {
 	public mutex = new Mutex(false);
 
 	constructor(private _userService: UserService, private _modalService: NgbModal) {
-		super(_userService)
+		super()
 		this.onUserChange(user => {
 			if (user) {
 				this._modalService.dismissAll();

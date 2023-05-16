@@ -20,7 +20,7 @@ export class UserEditComponent extends CurrentUser {
   });
 
   constructor(private _userService: UserService, router: Router) {
-    super(_userService);
+    super();
 
     this.onUserChange(user => {
       if (!user) {

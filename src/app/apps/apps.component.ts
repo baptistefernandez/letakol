@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Utils } from '../services/utils/utils.service';
 
 class App {
-  public path: Array<string>;
+  readonly path: Array<string>;
   constructor(readonly route: string, readonly name: string, readonly description: string = '') {
     this.path = ['/', 'apps', route];
   }
@@ -19,7 +19,8 @@ export class AppsComponent {
   public currentApp: string | undefined;
 
   public apps: Array<App> = [
-    new App('image', 'Gallery')
+    new App('images', 'Gallery'),
+    new App('pixels', 'Pixels war')
   ]
 
   constructor(private _router: Router, activatedRoute: ActivatedRoute) {

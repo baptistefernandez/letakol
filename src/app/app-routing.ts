@@ -4,6 +4,7 @@ import { AdminComponent } from './views/admin/admin.component';
 import { UserComponent } from './views/user/user.component';
 import { loadAppsRouteModule } from './apps/apps.module';
 import { UserEditComponent } from './views/user/edit/edit.component';
+import { FooterComponent } from './components/footer/footer.component';
 
 export const ROUTES: Routes = [
   { path: '', component: DefaultComponent },

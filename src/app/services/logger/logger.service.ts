@@ -9,10 +9,16 @@ export enum LOG_LEVEL {
 
 @Injectable()
 export class Logger {
-  private static _log(message: string, level: LOG_LEVEL = LOG_LEVEL.LOG, arg: any = null): void {
+  private static _log(message: string, level: LOG_LEVEL = LOG_LEVEL.LOG, args: any = null): void {
     if (!environment.production) {
-      const log = `[${['LOG', 'WARN', 'ERROR'][level]}]${message}`;
-      arg ? console.log(log, arg) : console.log(log);
+      const textLevel = ['LOG', 'WARN', 'ERROR'][level]
+      const style = `color: ${['#7C9299', '#FFB100', '#E74646'][level]};`;
+      const log = `%c[${textLevel}]${message}`;
+
+      console.log(log, style)
+      if (args) {
+        console.log(args)
+      }
     }
   }
 

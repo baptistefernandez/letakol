@@ -3,10 +3,14 @@
 </div>
 
 <ng-template #appsTemplate class="content">
+    <div class="row">
+        <h4>Apps:</h4>
+    </div>
+
     <div class="row mt-3">
         <div class="col-12 col-sm-6 col-lg-4 col-xl-3 mb-3" *ngFor="let app of apps">
             <div class="card link" (click)="click(app)">
-                <img class="card-img-top" [src]="'/assets/images/titlecards/app-titlecard.png'" [alt]="app.name" />
+                <img class="card-img-top" [src]="'/assets/images/titlecards/app-titlecard.png'" [alt]="app.route" />
                 <div class="card-body">
                     <h5 class="card-title ellipsis">{{ app.name }}</h5>
                 </div>

@@ -14,6 +14,7 @@ import { BrowserModule } from '@angular/platform-browser';
 import { RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { AvatarComponent } from './avatar/avatar.component';
+import { FooterComponent } from './footer/footer.component';
 
 @NgModule({
   declarations: [
@@ -28,6 +29,7 @@ import { AvatarComponent } from './avatar/avatar.component';
     ItemDateComponent,
     ItemComponent,
     AvatarComponent,
+    FooterComponent,
   ],
   exports: [
     HeaderComponent,

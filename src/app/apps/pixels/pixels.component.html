@@ -1,0 +1,18 @@
+<div #pixelsWrapper class="mt-3"></div>
+
+<div class="row mt-2">
+    <div class="col-3">
+        <app-mutex-button [lock]="mutex.lock" [btnClass]="'btn-info'" [btnValue]="'Create'"
+            (clicked)="create()"></app-mutex-button>
+    </div>
+
+    <div class="col-9">
+        <ul class="list-group">
+            <li class="list-group-item" *ngFor="let pixel of pixels">
+                <span><b>{{ pixel.id }}</b></span>
+                <span class="ms-2">{{ pixel.data.color }}</span>
+                <span class="badge bg-secondary ms-2">{{ pixel.data.posX }}, {{ pixel.data.posY }}</span>
+            </li>
+        </ul>
+    </div>
+</div>

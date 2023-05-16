@@ -1,12 +1,10 @@
 import { Component } from '@angular/core';
 import { Debouncer } from 'src/app/classes/debouncer.class';
-import { EPixelColors } from 'src/app/models/enums/pixel-war-colors.enum';
+import { EPixelColors } from 'src/app/models/enums/pixel-colors.enum';
 import { IItem } from 'src/app/models/item.model';
 import { IPixel, Pixel } from 'src/app/models/pixel.model';
 import { FirestoreService } from 'src/app/services/firestore/firestore.service';
 import { environment } from 'src/environments/environment';
-import { Observable, interval, of } from 'rxjs';
-import { mergeMap, delay, map, take, tap, filter } from 'rxjs/operators';
 
 @Component({
 	selector: 'app-default',

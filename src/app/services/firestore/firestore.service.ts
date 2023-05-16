@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collectionData, docData } from '@angular/fire/firestore';
-import { doc, query, where, collection, addDoc, updateDoc, deleteDoc, limitToLast, orderBy, DocumentReference, DocumentData, setDoc } from 'firebase/firestore';
+import { doc, query, where, collection, addDoc, updateDoc, deleteDoc, limitToLast, orderBy, DocumentReference, DocumentData, setDoc, Query, QueryConstraint } from 'firebase/firestore';
 import { Observable, from } from 'rxjs';
-import { QueryCondition } from 'src/app/models/queryCondition.model';
+import { EqualCondition, QueryCondition } from 'src/app/models/queryCondition.model';
 import { ECompare } from 'src/app/models/enums/firebase-compare.enum';
 import { EItemTypes } from 'src/app/models/enums/firebase-item-types.enum';
 import { IItem } from 'src/app/models/item.model';
 import { Utils } from '../utils/utils.service';
 import { Logger } from '../logger/logger.service';
+import { UserStaticService } from '../user/user.static.service';
+import { UserError } from 'src/app/models/error/user-error.error';
 
 @Injectable()
 export class FirestoreService {
@@ -17,8 +19,20 @@ export class FirestoreService {
 
 	constructor(private readonly _firestore: Firestore) { }
 
-	public create<T>(item: IItem): Promise<void> {
+	private userGuard(): boolean {
+		return UserStaticService.currentUser ? true : false
+	}
+
+	private collection<T>(constraints: QueryConstraint[] = []): Observable<T[]> {
 		const collectionReference = collection(this._firestore, this.TABLE)
+		const documentData = query(collectionReference, ...constraints);
+		Logger.log(`[FirestoreService] requesting collection`, constraints)
+		return collectionData(documentData) as Observable<T[]>
+	}
+
+	public create(item: IItem): Promise<void> {
+		if (!this.userGuard()) { return Promise.reject(new UserError) }
+		// transform Item onto Object (JSON)
 		const { ...plainObject } = item;
 		const documentReference = doc(this._firestore, `${this.TABLE}/${item.id}`);
 		return setDoc(documentReference, plainObject)
@@ -30,24 +44,18 @@ export class FirestoreService {
 	}
 
 	public list<T>(type: EItemTypes): Observable<T[]> {
-		const collectionReference = collection(this._firestore, this.TABLE)
-		const condition = where('type', ECompare.Equal, type)
-		const documentData = query(collectionReference, condition)
-		return collectionData(documentData) as Observable<T[]>;
+		const constraints = where(`type`, ECompare.Equal, type)
+		return this.collection<T>([constraints])
 	}
 
 	public all(limit: number = this.DEFAULT_LIMIT, order: string = this.DEFAULT_ORDER): Observable<IItem[]> {
-		const collectionReference = collection(this._firestore, this.TABLE)
-		const documentData = query(collectionReference, orderBy(order, 'asc'), limitToLast(limit));
-		return collectionData(documentData) as Observable<IItem[]>;
+		const contraints = [orderBy(order, 'asc'), limitToLast(limit)]
+		return this.collection<IItem>(contraints);
 	}
 
 	public search(conditions: QueryCondition[]): Observable<IItem[]> {
-		const collectionReference = collection(this._firestore, this.TABLE)
-		const wheres = conditions.map(condition => condition.toWhere())
-		const documentData = query(collectionReference, ...wheres)
-		Logger.log(`requesting collection`, conditions)
-		return collectionData(documentData) as Observable<IItem[]>;
+		const contraints = conditions.map(condition => condition.toWhere())
+		return this.collection<IItem>(contraints)
 	}
 
 	public searchOne(conditions: QueryCondition[]): Observable<IItem> {
@@ -62,11 +70,13 @@ export class FirestoreService {
 
 
 	public update(item: IItem): Promise<void> {
+		if (!this.userGuard()) { return Promise.reject(new UserError) }
 		const documentReference = doc(this._firestore, `${this.TABLE}/${item.id}`);
 		return updateDoc(documentReference, { ...item });
 	}
 
 	public delete(item: IItem): Promise<void> {
+		if (!this.userGuard()) { return Promise.reject(new UserError) }
 		const documentReference = doc(this._firestore, `${this.TABLE}/${item.id}`);
 		return deleteDoc(documentReference);
 	}

@@ -8,7 +8,10 @@
 			</li>
 		</ul>
 
-		<div class="float-right">
+		<div class="float-right" *ngIf="userLoading">
+			<span class="spinner-border text-light" role="status" aria-hidden="true"></span>
+		</div>
+		<div class="float-right" *ngIf="!userLoading">
 			<button *ngIf="!currentUser" class="btn btn-primary" (click)="openLoginModal()">Login</button>
 			<div *ngIf="currentUser" class="d-flex">
 				<app-user-link [user]="currentUser" [light]="true"></app-user-link>

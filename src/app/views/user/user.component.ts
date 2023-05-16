@@ -19,8 +19,8 @@ export class UserComponent extends CurrentUser {
   public items: Array<IItem> = [];
   public displayItems: Array<IItem> = []; // handled by pagination
 
-  constructor(userService: UserService, activatedRoute: ActivatedRoute, firestoreService: FirestoreService) {
-    super(userService)
+  constructor(activatedRoute: ActivatedRoute, firestoreService: FirestoreService) {
+    super()
 
     this.addSubscription(
       activatedRoute.params.subscribe(params => {

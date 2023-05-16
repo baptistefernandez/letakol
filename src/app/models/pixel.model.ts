@@ -1,5 +1,5 @@
 import { EItemTypes } from './enums/firebase-item-types.enum';
-import { EPixelColors } from './enums/pixel-war-colors.enum';
+import { EPixelColors } from './enums/pixel-colors.enum';
 import { EmptyItem, IItem } from './item.model';
 
 export interface IPixelData {
