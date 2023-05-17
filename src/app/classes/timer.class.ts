@@ -29,6 +29,6 @@ export class Timer {
   }
 
   public toString(): string {
-    return `[${this.name}] Time: ${this.value}sec`;
+    return `[TIMER]${this.name} Time: ${this.value}sec`;
   }
 }

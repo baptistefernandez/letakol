@@ -1,15 +1,17 @@
 import { Canvas } from 'src/app/classes/canvas.class';
 import { Coord } from 'src/app/classes/coord.class';
 import { Debouncer } from 'src/app/classes/debouncer.class';
+import { Timer } from 'src/app/classes/timer.class';
 import { EPixelColors } from 'src/app/models/enums/pixel-colors.enum';
 import { IPixel } from 'src/app/models/pixel.model';
 import { Logger } from 'src/app/services/logger/logger.service';
 import { Utils } from 'src/app/services/utils/utils.service';
 
-const TIMESPAN = 30
-const ARRAY_SIZE = 10
+const TIMESPAN = 30;
+const ARRAY_SIZE = 100;
 const PIXEL_SIZE = 4;
 const MAX_ZOOM_LEVEL = 5;
+const ALPHA = 255
 
 export class PixelWar extends Canvas {
 	private _imageSource: HTMLImageElement = new Image();
@@ -21,15 +23,15 @@ export class PixelWar extends Canvas {
 	private _zoomDebouncer: Debouncer = new Debouncer(this.changeZoomLevel.bind(this), 100);
 	private _resizeDebouncer: Debouncer = new Debouncer(this.calcImage.bind(this), 100);
 	private _pendingZoom: number = 0;
+	private _timer: Timer = new Timer(`[PixelWar] 'calcImage'`)
 
 	constructor(name: string, wrapper: HTMLDivElement) {
 		super({ name, wrapper, looperOption: { timespan: TIMESPAN } });
-
 		this.start();
 	}
 
 	public feedPixels(pixels: IPixel[]): void {
-		const ordonnedPixels = pixels.map(({ data }) => ({ pos: Math.floor(data.posX / 10) + Math.floor(data.posY / 10) * ARRAY_SIZE, color: data.color }))
+		const ordonnedPixels = pixels.map(({ data }) => ({ pos: data.posX + data.posY * ARRAY_SIZE, color: data.color }))
 		this._pixelArray = Utils.array(Math.pow(ARRAY_SIZE, 2))
 		ordonnedPixels.forEach(pixel => this._pixelArray![pixel.pos] = pixel.color);
 		this.calcImage();
@@ -47,16 +49,38 @@ export class PixelWar extends Canvas {
 	private fillPixel(image: ImageData, pos: number, color: EPixelColors) {
 		const cellSize = Math.floor(this.size / ARRAY_SIZE);
 		const startPos = Math.floor(pos / ARRAY_SIZE) * this.size * cellSize * PIXEL_SIZE + (pos % ARRAY_SIZE) * cellSize * PIXEL_SIZE
-
 		const gap = Math.floor(cellSize / 10); // 1/10 of pixel is for gap
-		for (let i = gap; i < cellSize - gap; i++) {
-			for (let j = gap; j < cellSize - gap; j++) {
-				const subPos = startPos + (i * this.size * PIXEL_SIZE) + (j * PIXEL_SIZE)
-				const { r, g, b } = this.hexToRgb(color)!
+		const { r, g, b } = this.hexToRgb(color)!
+
+		for (let x = gap; x < cellSize - gap; x++) {
+			for (let y = gap; y < cellSize - gap; y++) {
+				const subPos = startPos + (x * this.size * PIXEL_SIZE) + (y * PIXEL_SIZE)
 				image.data[subPos + 0] = r;
 				image.data[subPos + 1] = g;
 				image.data[subPos + 2] = b;
-				image.data[subPos + 3] = 255;
+				image.data[subPos + 3] = ALPHA;
+			}
+		}
+	}
+
+	private drawGrid(image: ImageData): void {
+		const GREY = 55;
+		const cellSize = Math.floor(this.size / ARRAY_SIZE);
+		for (let x = 0; x <= ARRAY_SIZE; x++) {
+			const subPosX1 = x * cellSize * this.size * PIXEL_SIZE;
+			const subPosX2 = x * cellSize * PIXEL_SIZE;
+			for (let y = 0; y < this.size * PIXEL_SIZE; y++) {
+				// horizontal lines
+				image.data[subPosX1 + y + 0] = GREY;
+				image.data[subPosX1 + y + 1] = GREY;
+				image.data[subPosX1 + y + 2] = GREY;
+				image.data[subPosX1 + y + 3] = ALPHA;
+				// vertical lines
+				const subPosY = subPosX2 + y * this.size * PIXEL_SIZE;
+				image.data[subPosY + 0] = GREY;
+				image.data[subPosY + 1] = GREY;
+				image.data[subPosY + 2] = GREY;
+				image.data[subPosY + 3] = ALPHA;
 			}
 		}
 	}
@@ -65,18 +89,21 @@ export class PixelWar extends Canvas {
 		if (!this._pixelArray) {
 			return Logger.warn(`[PixelWar] pixel array is not ready yet`);
 		}
-		console.log('calcImage!, size:', this.size)
+
+		this._timer.start();
+
 		const imageData = this.render.createImageData(this.size, this.size); // TODO
 		if (!imageData) {
 			return Logger.error(`[PixelWar][calcImage] image data creation error`)
 		}
-		this._pixelArray.forEach((pixel, index) => {
-			if (pixel) {
-				this.fillPixel(imageData, index, pixel)
-			}
-		})
-		this.render.putImageData(imageData, this._imagePos.x, this._imagePos.y);
+		this._pixelArray.forEach((pixel, index) => pixel ? this.fillPixel(imageData, index, pixel) : null)
+		// this.drawGrid(imageData);
+
+		this.render.putImageData(imageData, 0, 0);
 		this._imageSource.src = this.render.canvas.toDataURL();
+
+		this._timer.stop();
+		console.log(this._timer.toString())
 	}
 
 	private changeZoomLevel(level: number, mx: number, my: number): void {
@@ -87,13 +114,18 @@ export class PixelWar extends Canvas {
 		}
 	}
 
+	private drawCell(): void {
+
+	}
+
+	private draw(): void {
+		this.render.clearRect(0, 0, this.size, this.size);
+		this.render.drawImage(this._imageSource, this._imagePos.x, this._imagePos.y, this.size * this._zoomLevel, this.size * this._zoomLevel);
+		this.drawCell();
+	}
+
 	protected override loopCB(): void {
-		if (!this._imageSource) {
-			this.calcImage();
-		} else {
-			this.render.clearRect(0, 0, this.size, this.size);
-			this.render.drawImage(this._imageSource, this._imagePos.x, this._imagePos.y);
-		}
+		this._imageSource ? this.draw() : this.calcImage();
 	}
 
 	protected override onScroll(up: boolean, mx: number, my: number): void {
