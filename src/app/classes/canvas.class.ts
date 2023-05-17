@@ -65,8 +65,6 @@ export class Canvas extends Looper {
 
 		const frames = Utils.fixed(1000 / this._timespan, 2);
 		Logger.log(`[Canvas] '${this._name}' initialized with ${frames} frames per second.`);
-
-		this.sizeCanvas();
 	}
 
 	private linkEvents(): void {
@@ -91,7 +89,8 @@ export class Canvas extends Looper {
 		);
 		this._canvas.addEventListener('mouseleave', (event: MouseEvent) => cancelEvent(event, this.onMouseLeave()));
 		// on wheel
-		this._canvas.addEventListener('wheel', (event: WheelEvent) => this.onScroll(event.deltaY > 0));
+		// this._canvas.addEventListener('wheel', (event: WheelEvent) => this.onScroll(event.deltaY > 0));
+		this._canvas.addEventListener('wheel', (event: WheelEvent) => cancelEvent(event, this.onScroll(event.deltaY > 0, event.offsetX, event.offsetY)));
 		// on resize
 		const resizeDebouncer = new Debouncer(this.sizeCanvas.bind(this), 100);
 		window.addEventListener('resize', (event: UIEvent) => resizeDebouncer.exec());
@@ -193,7 +192,7 @@ export class Canvas extends Looper {
 
 	protected onResize(): void { }
 	protected onRightClick(x: number, y: number): void { }
-	protected onScroll(up: boolean): void { }
+	protected onScroll(up: boolean, x: number, y: number): void { }
 	protected onMouse(pressed: boolean, x: number, y: number): void { }
 	protected onMouseLeave(): void { }
 	protected onMouseMove(x: number, y: number): void { }

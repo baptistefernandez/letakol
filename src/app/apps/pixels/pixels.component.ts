@@ -28,7 +28,7 @@ export class PixelsComponent extends CurrentUser implements AfterViewInit {
         if (this.app) {
           this.app.feedPixels(pixels)
         } else {
-          Logger.error(`[PixelsComponent] could not feed pixel because app is not instnacied`)
+          Logger.error(`[PixelsComponent] could not feed pixel because app is not instancied`)
         }
       })
     )

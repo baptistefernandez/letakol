@@ -103,10 +103,7 @@ export class Utils {
 	 * @memberof Utils
 	 */
 	public static reduce(num: number, max: number = 0, min: number = 0): number {
-		if (min > max) {
-			throw new Error(`Utils.contain error: min (${min}) > max (${max})`);
-		}
-		return num > min ? (max > 0 ? (num < max ? num : max) : num) : min;
+		return num > max ? max : num < min ? min : num;
 	}
 
 	/**
