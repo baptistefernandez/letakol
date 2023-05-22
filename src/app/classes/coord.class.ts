@@ -8,6 +8,10 @@ export class Coord {
     return this
   }
 
+  public equal(coord: Coord): boolean {
+    return this.x === coord.x && this.y === coord.y && this.z === coord.z;
+  }
+
   public add(coord: Coord): Coord {
     this.x += coord.x;
     this.y += coord.y;

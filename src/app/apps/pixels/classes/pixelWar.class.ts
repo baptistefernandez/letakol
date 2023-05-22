@@ -12,12 +12,14 @@ const ARRAY_SIZE = 100;
 const PIXEL_SIZE = 4;
 const MAX_ZOOM_LEVEL = 5;
 const ALPHA = 255
+const HOVER_COLOR = '#aaaaaa'
 
 export class PixelWar extends Canvas {
 	private _imageSource: HTMLImageElement = new Image();
+	private _mousePos: Coord = new Coord();
 	private _startClickPos: Coord | null = null;
 	private _imagePos: Coord = new Coord()
-	private _oldImagePos: Coord = new Coord()
+	private _currentImagePos: Coord = new Coord()
 	private _pixelArray: (EPixelColors | null)[] | undefined;
 	private _zoomLevel: number = 1;
 	private _zoomDebouncer: Debouncer = new Debouncer(this.changeZoomLevel.bind(this), 100);
@@ -35,6 +37,14 @@ export class PixelWar extends Canvas {
 		this._pixelArray = Utils.array(Math.pow(ARRAY_SIZE, 2))
 		ordonnedPixels.forEach(pixel => this._pixelArray![pixel.pos] = pixel.color);
 		this.calcImage();
+	}
+
+	private changeZoomLevel(level: number, mx: number, my: number): void {
+		const newZoom = Utils.reduce(this._zoomLevel + level, MAX_ZOOM_LEVEL, 1);
+		this._pendingZoom = 0;
+		if (newZoom !== this._zoomLevel) {
+			this._zoomLevel = newZoom;
+		}
 	}
 
 	private hexToRgb(hex: string): { r: number, g: number, b: number } | null {
@@ -106,22 +116,36 @@ export class PixelWar extends Canvas {
 		console.log(this._timer.toString())
 	}
 
-	private changeZoomLevel(level: number, mx: number, my: number): void {
-		const newZoom = Utils.reduce(this._zoomLevel + level, MAX_ZOOM_LEVEL, 1);
-		this._pendingZoom = 0;
-		if (newZoom !== this._zoomLevel) {
-			this._zoomLevel = newZoom;
-		}
-	}
-
 	private drawCell(): void {
-
+		if (this._startClickPos) {
+			return;
+		}
+		const cellSize = Math.floor(this.size / ARRAY_SIZE) * this._zoomLevel,
+			gapx = this._currentImagePos.x % cellSize,
+			gapy = this._currentImagePos.y % cellSize,
+			x = Math.floor((this._mousePos.x - gapx) / cellSize) * cellSize,
+			y = Math.floor((this._mousePos.y - gapy) / cellSize) * cellSize
+		this.render.beginPath();
+		this.render.fillStyle = HOVER_COLOR;
+		this.render.fillRect(x + gapx, y + gapy, cellSize, cellSize);
+		this.render.closePath();
 	}
 
 	private draw(): void {
 		this.render.clearRect(0, 0, this.size, this.size);
 		this.render.drawImage(this._imageSource, this._imagePos.x, this._imagePos.y, this.size * this._zoomLevel, this.size * this._zoomLevel);
 		this.drawCell();
+	}
+
+	private clickOnCell(mx: number, my: number): void {
+		const cellSize = Math.floor(this.size / ARRAY_SIZE) * this._zoomLevel,
+			imgx = Math.floor(this._currentImagePos.x / cellSize),
+			imgy = Math.floor(this._currentImagePos.y / cellSize),
+			gapx = this._currentImagePos.x % cellSize,
+			gapy = this._currentImagePos.y % cellSize,
+			x = Math.floor((this._mousePos.x - gapx) / cellSize),
+			y = Math.floor((this._mousePos.y - gapy) / cellSize)
+			console.log(x - imgx, y - imgy)
 	}
 
 	protected override loopCB(): void {
@@ -134,10 +158,11 @@ export class PixelWar extends Canvas {
 	}
 
 	protected override onMouseMove(mx: number, my: number): void {
+		this._mousePos.set(mx, my);
 		if (this._startClickPos) {
 			this._imagePos.set(
-				mx - this._startClickPos.x + this._oldImagePos.x,
-				my - this._startClickPos.y + this._oldImagePos.y
+				mx - this._startClickPos.x + this._currentImagePos.x,
+				my - this._startClickPos.y + this._currentImagePos.y
 			)
 		}
 	}
@@ -145,13 +170,17 @@ export class PixelWar extends Canvas {
 	protected override onMouse(pressed: boolean, mx: number, my: number): void {
 		this._startClickPos = pressed ? new Coord(mx, my) : null;
 		if (!pressed) {
-			this._oldImagePos = this._imagePos.clone();
+			// click
+			if (this._imagePos.equal(this._currentImagePos)) {
+				this.clickOnCell(mx, my);
+			}
+			this._currentImagePos = this._imagePos.clone();
 		}
 	}
 
 	protected override onMouseLeave(): void {
 		this._startClickPos = null;
-		this._oldImagePos = this._imagePos.clone();
+		this._currentImagePos = this._imagePos.clone();
 	}
 
 	protected override onResize(): void {
